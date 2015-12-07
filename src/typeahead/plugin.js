@@ -72,7 +72,8 @@
         input = new Input({ hint: $hint, input: $input, }, www);
         menu = new MenuConstructor({
           node: $menu,
-          datasets: datasets
+          datasets: datasets,
+          datasetsSelectOrder: o.datasetsSelectOrder
         }, www);
 
         typeahead = new Typeahead({
@@ -159,7 +160,7 @@
       return success;
     },
 
-    // mirror jQuery#val functionality: reads operate on first match,
+    // mirror jQuery#val functionality: reads opearte on first match,
     // write operates on all matches
     val: function val(newVal) {
       var query;
@@ -186,7 +187,7 @@
   };
 
   $.fn.typeahead = function(method) {
-    // methods that should only act on initialized typeaheads
+    // methods that should only act on intialized typeaheads
     if (methods[method]) {
       return methods[method].apply(this, [].slice.call(arguments, 1));
     }

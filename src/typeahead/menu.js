@@ -26,6 +26,7 @@ var Menu = (function() {
     // the latest query #update was called with
     this.query = null;
     this.datasets = _.map(o.datasets, initializeDataset);
+    this.datasetsSelectOrder = o.datasetsSelectOrder;
 
     function initializeDataset(oDataset) {
       var node = that.$node.find(oDataset.node).first();
@@ -69,8 +70,16 @@ var Menu = (function() {
     },
 
     _getSelectables: function getSelectables() {
-      return this.$node.find(this.selectors.selectable);
-    },
+      if(this.datasetsSelectOrder !== undefined && this.datasetsSelectOrder !== null && Array.isArray && Array.isArray(this.datasetsSelectOrder) ) {
+        var result = [];
+        for(var i = 0; i < this.datasetsSelectOrder.length; i += 1) {
+          var selectableSet = this.$node.find(this.selectors.dataset + '-'+ this.datasetsSelectOrder[i] + ' ' + this.selectors.selectable).toArray();
+          result = result.concat(selectableSet);
+        }
+        return $(result);
+      }
+      return this.$node.find(this.selectors.selectable);  
+  },
 
     _removeCursor: function _removeCursor() {
       var $selectable = this.getActiveSelectable();
@@ -103,7 +112,6 @@ var Menu = (function() {
 
       onSelectableClick = _.bind(this._onSelectableClick, this);
       this.$node.on('click.tt', this.selectors.selectable, onSelectableClick);
-      this.$node.on('mouseover', this.selectors.selectable, function(){ that.setCursor($(this)) });
 
       _.each(this.datasets, function(dataset) {
         dataset
