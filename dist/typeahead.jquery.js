@@ -6,7 +6,7 @@
 
 (function(root, factory) {
     if (typeof define === "function" && define.amd) {
-        define([ "jquery" ], function(a0) {
+        define("typeahead.js", [ "jquery" ], function(a0) {
             return factory(a0);
         });
     } else if (typeof exports === "object") {
@@ -798,7 +798,9 @@
                     syncCalled = true;
                     suggestions = (suggestions || []).slice(0, that.limit);
                     rendered = suggestions.length;
-                    that._overwrite(query, suggestions);
+                    if (suggestions.length) {
+                        that._overwrite(query, suggestions);
+                    }
                     if (rendered < that.limit && that.async) {
                         that.trigger("asyncRequested", query);
                     }
@@ -807,7 +809,11 @@
                     suggestions = suggestions || [];
                     if (!canceled && rendered < that.limit) {
                         that.cancel = $.noop;
-                        that._append(query, suggestions.slice(0, that.limit - rendered));
+                        if (rendered === 0) {
+                            that._overwrite(query, suggestions.slice(0, that.limit - rendered));
+                        } else {
+                            that._append(query, suggestions.slice(0, that.limit - rendered));
+                        }
                         rendered += suggestions.length;
                         that.async && that.trigger("asyncReceived", query);
                     }
@@ -862,6 +868,7 @@
             this.$node = $(o.node);
             this.query = null;
             this.datasets = _.map(o.datasets, initializeDataset);
+            this.datasetsSelectOrder = o.datasetsSelectOrder;
             function initializeDataset(oDataset) {
                 var node = that.$node.find(oDataset.node).first();
                 oDataset.node = node.length ? node : $("<div>").appendTo(that.$node);
@@ -890,6 +897,14 @@
                 }
             },
             _getSelectables: function getSelectables() {
+                if (this.datasetsSelectOrder !== undefined && this.datasetsSelectOrder !== null && Array.isArray && Array.isArray(this.datasetsSelectOrder)) {
+                    var result = [];
+                    for (var i = 0; i < this.datasetsSelectOrder.length; i += 1) {
+                        var selectableSet = this.$node.find(this.selectors.dataset + "-" + this.datasetsSelectOrder[i] + " " + this.selectors.selectable).toArray();
+                        result = result.concat(selectableSet);
+                    }
+                    return $(result);
+                }
                 return this.$node.find(this.selectors.selectable);
             },
             _removeCursor: function _removeCursor() {
@@ -912,9 +927,6 @@
                 var that = this, onSelectableClick;
                 onSelectableClick = _.bind(this._onSelectableClick, this);
                 this.$node.on("click.tt", this.selectors.selectable, onSelectableClick);
-                this.$node.on("mouseover", this.selectors.selectable, function() {
-                    that.setCursor($(this));
-                });
                 _.each(this.datasets, function(dataset) {
                     dataset.onSync("asyncRequested", that._propagate, that).onSync("asyncCanceled", that._propagate, that).onSync("asyncReceived", that._propagate, that).onSync("rendered", that._onRendered, that).onSync("cleared", that._onCleared, that);
                 });
@@ -924,7 +936,6 @@
                 return this.$node.hasClass(this.classes.open);
             },
             open: function open() {
-                this.$node.scrollTop(0);
                 this.$node.addClass(this.classes.open);
             },
             close: function close() {
@@ -1148,12 +1159,12 @@
             },
             _onLeftKeyed: function onLeftKeyed() {
                 if (this.dir === "rtl" && this.input.isCursorAtEnd()) {
-                    this.autocomplete(this.menu.getActiveSelectable() || this.menu.getTopSelectable());
+                    this.autocomplete(this.menu.getTopSelectable());
                 }
             },
             _onRightKeyed: function onRightKeyed() {
                 if (this.dir === "ltr" && this.input.isCursorAtEnd()) {
-                    this.autocomplete(this.menu.getActiveSelectable() || this.menu.getTopSelectable());
+                    this.autocomplete(this.menu.getTopSelectable());
                 }
             },
             _onQueryChanged: function onQueryChanged(e, query) {
@@ -1355,7 +1366,8 @@
                     }, www);
                     menu = new MenuConstructor({
                         node: $menu,
-                        datasets: datasets
+                        datasets: datasets,
+                        datasetsSelectOrder: o.datasetsSelectOrder
                     }, www);
                     typeahead = new Typeahead({
                         input: input,
@@ -1454,7 +1466,7 @@
                     return query;
                 } else {
                     ttEach(this, function(t) {
-                        t.setVal(_.toStr(newVal));
+                        t.setVal(newVal);
                     });
                     return this;
                 }
