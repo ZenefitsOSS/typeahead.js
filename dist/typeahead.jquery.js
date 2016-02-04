@@ -808,15 +808,16 @@
                 }
                 function async(suggestions) {
                     suggestions = suggestions || [];
-                    if (!canceled && rendered < that.limit) {
+                    var limit = suggestions.length < that.limit ? suggestions.length : that.limit;
+                    if (!canceled && rendered < limit) {
                         that.cancel = $.noop;
                         if (rendered === 0) {
-                            that._overwrite(query, suggestions.slice(0, that.limit - rendered));
+                            that._overwrite(query, suggestions.slice(0, limit - rendered));
                         } else {
-                            that._append(query, suggestions.slice(0, that.limit - rendered));
+                            that._append(query, suggestions.slice(0, limit - rendered));
                         }
                         rendered += suggestions.length;
-                        that._append(query, suggestions.slice(0, that.limit - rendered));
+                        that._append(query, suggestions.slice(0, limit - rendered));
                         that.async && that.trigger("asyncReceived", query);
                     }
                 }
