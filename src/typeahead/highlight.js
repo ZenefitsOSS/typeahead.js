@@ -30,7 +30,18 @@ var highlight = (function(doc) {
 
     // support wrapping multiple patterns
     o.pattern = _.isArray(o.pattern) ? o.pattern : [o.pattern];
-    o.pattern = o.pattern.length ? o.pattern[0].match(/\S+/g) : o.pattern;
+    // split on space
+    if (o.pattern.length) {
+      var full = o.pattern[0];
+      o.pattern = full.match(/\S+/g);
+      // if we've "lost" the original full string add it back
+      // (this doesn't matter for bolding but does for underlines
+      // where you want the underline to be continious through the
+      // whole match)
+      if (o.pattern.indexOf(full) === -1) {
+        o.pattern.insertAt(0, full);
+      }
+    }
 
     regex = getRegex(o.pattern, o.caseSensitive, o.wordsOnly);
     traverse(o.node, hightlightTextNode);
