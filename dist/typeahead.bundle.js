@@ -1316,7 +1316,13 @@
                 return;
             }
             o.pattern = _.isArray(o.pattern) ? o.pattern : [ o.pattern ];
-            o.pattern = o.pattern.length ? o.pattern[0].match(/\S+/g) : o.pattern;
+            if (o.pattern.length) {
+                var full = o.pattern[0];
+                o.pattern = full.match(/\S+/g);
+                if (o.pattern.indexOf(full) === -1) {
+                    o.pattern.insertAt(0, full);
+                }
+            }
             regex = getRegex(o.pattern, o.caseSensitive, o.wordsOnly);
             traverse(o.node, hightlightTextNode);
             function hightlightTextNode(textNode) {
