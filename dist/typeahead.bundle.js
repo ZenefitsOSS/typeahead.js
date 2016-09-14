@@ -1316,14 +1316,14 @@
                 return;
             }
             o.pattern = _.isArray(o.pattern) ? o.pattern : [ o.pattern ];
-            if (o.pattern.length) {
-                var full = o.pattern[0];
-                o.pattern = full.match(/\S+/g);
-                if (o.pattern.indexOf(full) === -1) {
-                    o.pattern.insertAt(0, full);
-                }
+            o.pattern = o.pattern.length ? o.pattern[0].match(/\S+/g) : o.pattern;
+            o.pattern = _.filter(o.pattern, function(s) {
+                return s.length > 1 && (!o.stopWords || o.stopWords.indexOf(s) === -1);
+            });
+            if (o.pattern.length === 0) {
+                return;
             }
-            regex = getRegex(o.pattern, o.caseSensitive, o.wordsOnly);
+            regex = getRegex(o.pattern, o.caseSensitive, o.wordsOnly, o.beginningOnly);
             traverse(o.node, hightlightTextNode);
             function hightlightTextNode(textNode) {
                 var match, patternNode, wrapperNode;
@@ -1349,12 +1349,17 @@
                 }
             }
         };
-        function getRegex(patterns, caseSensitive, wordsOnly) {
+        function getRegex(patterns, caseSensitive, wordsOnly, beginningOnly) {
             var escapedPatterns = [], regexStr;
             for (var i = 0, len = patterns.length; i < len; i++) {
                 escapedPatterns.push(_.escapeRegExChars(patterns[i]));
             }
-            regexStr = wordsOnly ? "\\b(" + escapedPatterns.join("|") + ")\\b" : "(" + escapedPatterns.join("|") + ")";
+            regexStr = "(" + escapedPatterns.join("|") + ")";
+            if (wordsOnly) {
+                regexStr = "\\b" + regexStr + "\\b";
+            } else if (beginningOnly) {
+                regexStr = "\\b" + regexStr;
+            }
             return caseSensitive ? new RegExp(regexStr) : new RegExp(regexStr, "i");
         }
     }(window.document);
@@ -1596,6 +1601,7 @@
             }
             www.mixin(this);
             this.highlight = !!o.highlight;
+            this.highlightOptions = o.highlightOptions;
             this.name = o.name || nameGenerator();
             this.limit = o.limit || 5;
             this.displayFn = getDisplayFn(o.display || o.displayKey);
@@ -1682,11 +1688,11 @@
                     $el = $(that.templates.suggestion(context)).data(keys.obj, suggestion).data(keys.val, that.displayFn(suggestion)).addClass(that.classes.suggestion + " " + that.classes.selectable);
                     fragment.appendChild($el[0]);
                 });
-                this.highlight && highlight({
+                this.highlight && highlight(_.mixin({
                     className: this.classes.highlight,
                     node: fragment,
                     pattern: query
-                });
+                }, this.highlightOptions));
                 return $(fragment);
             },
             _getFooter: function getFooter(query, suggestions) {
