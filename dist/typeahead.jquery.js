@@ -1082,6 +1082,7 @@
             this.minLength = _.isNumber(o.minLength) ? o.minLength : 1;
             this.input = o.input;
             this.menu = o.menu;
+            this.dontSetInputOnMoveCursor = o.dontSetInputOnMoveCursor;
             this.enabled = true;
             this.active = false;
             this.input.hasFocus() && this.activate();
@@ -1310,7 +1311,9 @@
                 if (!cancelMove && !this.eventBus.before("cursorchange", payload)) {
                     this.menu.setCursor($candidate);
                     if (data) {
-                        this.input.setInputValue(data.val);
+                        if (!this.dontSetInputOnMoveCursor) {
+                            this.input.setInputValue(data.val);
+                        }
                     } else {
                         this.input.resetInputValue();
                         this._updateHint();
@@ -1388,6 +1391,7 @@
                     typeahead = new Typeahead({
                         input: input,
                         menu: menu,
+                        dontSetInputOnMoveCursor: o.dontSetInputOnMoveCursor,
                         eventBus: eventBus,
                         minLength: o.minLength
                     }, www);
