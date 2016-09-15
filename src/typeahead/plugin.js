@@ -79,6 +79,7 @@
         typeahead = new Typeahead({
           input: input,
           menu: menu,
+          dontSetInputOnMoveCursor: o.dontSetInputOnMoveCursor,
           eventBus: eventBus,
           minLength: o.minLength
         }, www);

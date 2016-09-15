@@ -37,6 +37,8 @@ var Typeahead = (function() {
     this.input = o.input;
     this.menu = o.menu;
 
+    this.dontSetInputOnMoveCursor = o.dontSetInputOnMoveCursor;
+
     this.enabled = true;
 
     // activate the typeahead on init if the input has focus
@@ -395,7 +397,9 @@ var Typeahead = (function() {
 
         // cursor moved to different selectable
         if (data) {
-          this.input.setInputValue(data.val);
+          if (!this.dontSetInputOnMoveCursor) {
+            this.input.setInputValue(data.val);
+          }
         }
 
         // cursor moved off of selectables, back to input
